@@ -7,6 +7,14 @@ use \WP_CLI\Utils;
  */
 class WP_CLI_Database_prefix extends WP_CLI_Command {
 
+	private $tables_names = array();
+
+	private function get_table_names() {
+		global $wpdb;
+
+		$this->table_names = $wpdb->get_col( $wpdb->prepare( 'SHOW TABLES LIKE %s', like_escape( $wpdb->prefix ) . '%' ) );
+	}
+
 	private function get_file_name( $args ) {
 		if ( empty( $args ) )
 			return sprintf( '%s.sql', DB_NAME );
@@ -47,8 +55,6 @@ class WP_CLI_Database_prefix extends WP_CLI_Command {
 	 *     wp db-prefix export --add-drop-table
 	 */
 	public function export( $args, $assoc_args ) {
-		global $wpdb;
-
 		$result_file = $this->get_file_name( $args );
 		$stdout = ( '-' === $result_file );
 
@@ -59,9 +65,9 @@ class WP_CLI_Database_prefix extends WP_CLI_Command {
 		$command = 'mysqldump --no-defaults %s';
 		$command_esc_args = array( DB_NAME );
 
-		$tables = $wpdb->get_col( $wpdb->prepare( 'SHOW TABLES LIKE %s', like_escape( $wpdb->prefix ) . '%' ) );
+		$this->get_table_names();
 		$command .= ' --tables';
-		foreach ( $tables as $table ) {
+		foreach ( $this->table_names as $table ) {
 			$command .= ' %s';
 			$command_esc_args[] = $table;
 		}
@@ -85,15 +91,9 @@ class WP_CLI_Database_prefix extends WP_CLI_Command {
 	 * @subcommand list
 	 */
 	public function _list( $args, $assoc_args ) {
-		global $wpdb;
+		$this->get_table_names();
 
-		$table_list = array();
-		$tables = $wpdb->get_col( $wpdb->prepare( 'SHOW TABLES LIKE %s', like_escape( $wpdb->prefix ) . '%' ) );
-		foreach ( $tables as $table ) {
-			$table_list[] = $table;
-		}
-
-		WP_CLI::line( implode( ',', $table_list ) );
+		WP_CLI::line( implode( ',', $this->table_names ) );
 	}
 
 }
