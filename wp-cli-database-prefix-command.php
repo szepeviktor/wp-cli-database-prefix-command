@@ -9,8 +9,10 @@ class WP_CLI_Database_prefix extends WP_CLI_Command {
 
 	private $tables_names = array();
 
-	private function get_table_names() {
+	private function get_table_names( $network ) {
 		global $wpdb;
+
+		$prefix = $network ? $wpdb->base_prefix : $wpdb->prefix;
 
 		$this->table_names = $wpdb->get_col( $wpdb->prepare( 'SHOW TABLES LIKE %s', like_escape( $wpdb->prefix ) . '%' ) );
 	}
@@ -49,6 +51,9 @@ class WP_CLI_Database_prefix extends WP_CLI_Command {
 	 * [--<field>=<value>]
 	 * : Extra arguments to pass to mysqldump
 	 *
+	 * [--network]
+	 * : Use base prefix in a multisite install.
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp db-prefix export
@@ -65,7 +70,12 @@ class WP_CLI_Database_prefix extends WP_CLI_Command {
 		$command = 'mysqldump --no-defaults %s';
 		$command_esc_args = array( DB_NAME );
 
-		$this->get_table_names();
+		$network = isset( $assoc_args['network'] );
+		if ( $network ) {
+			unset( $assoc_args['network'] );
+		}
+		$this->get_table_names( $network );
+
 		$command .= ' --tables';
 		foreach ( $this->table_names as $table ) {
 			$command .= ' %s';
@@ -84,6 +94,11 @@ class WP_CLI_Database_prefix extends WP_CLI_Command {
 	/**
 	 * Lists the prefixed database tables.
 	 *
+	 * ## OPTIONS
+	 *
+	 * [--network]
+	 * : Use base prefix in a multisite install.
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp db-prefix list
@@ -91,7 +106,8 @@ class WP_CLI_Database_prefix extends WP_CLI_Command {
 	 * @subcommand list
 	 */
 	public function _list( $args, $assoc_args ) {
-		$this->get_table_names();
+		$network = isset( $assoc_args['network'] );
+		$this->get_table_names( $network );
 
 		WP_CLI::line( implode( ',', $this->table_names ) );
 	}
