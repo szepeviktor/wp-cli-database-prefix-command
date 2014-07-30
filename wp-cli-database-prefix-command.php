@@ -59,7 +59,7 @@ class WP_CLI_Database_prefix extends WP_CLI_Command {
 		$command = 'mysqldump --no-defaults %s';
 		$command_esc_args = array( DB_NAME );
 
-		$tables = $wpdb->get_col( "SHOW TABLES LIKE '$wpdb->prefix%';" );
+		$tables = $wpdb->get_col( $wpdb->prepare( 'SHOW TABLES LIKE %s', like_escape( $wpdb->prefix ) . '%' ) );
 		$command .= ' --tables';
 		foreach ( $tables as $table ) {
 			$command .= ' %s';
@@ -88,7 +88,7 @@ class WP_CLI_Database_prefix extends WP_CLI_Command {
 		global $wpdb;
 
 		$table_list = array();
-		$tables = $wpdb->get_col( "SHOW TABLES LIKE '$wpdb->prefix%';" );
+		$tables = $wpdb->get_col( $wpdb->prepare( 'SHOW TABLES LIKE %s', like_escape( $wpdb->prefix ) . '%' ) );
 		foreach ( $tables as $table ) {
 			$table_list[] = $table;
 		}
