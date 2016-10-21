@@ -1,6 +1,6 @@
 {
 	"name": "szepeviktor/wp-cli-database-prefix-command",
-	"type": "command",
+	"type": "wp-cli-package",
 	"description": "Perform operations on prefixed database tables.",
 	"keywords": ["wp-cli","database","prefix"],
 	"homepage": "https://github.com/szepeviktor/wp-cli-database-prefix-command",
